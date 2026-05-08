@@ -2,7 +2,7 @@
   "name": "vscode-multicol",
   "displayName": "Multicol Reading",
   "description": "Two-column reading for one file: toggle split on/off like a checkbox; editor title bar, status bar, and Ctrl+Alt+N.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "rockeet",
   "author": {
     "name": "雷鹏（Lei Peng）",
@@ -55,27 +55,18 @@
         "command": "multicol.toggleTwoColumn",
         "title": "Toggle Two-Column Reading",
         "category": "Multicol Reading",
-        "icon": {
-          "light": "media/multicol.svg",
-          "dark": "media/multicol.svg"
-        },
+        "icon": "$(columns)",
         "toggled": {
           "condition": "multicol.active",
           "title": "Turn Off Two-Column Reading",
-          "icon": {
-            "light": "media/multicol-active.svg",
-            "dark": "media/multicol-active.svg"
-          }
+          "icon": "$(check)"
         }
       },
       {
         "command": "multicol.activateTwoColumn",
         "title": "Turn On Two-Column Reading",
         "category": "Multicol Reading",
-        "icon": {
-          "light": "media/multicol.svg",
-          "dark": "media/multicol.svg"
-        }
+        "icon": "$(columns)"
       },
       {
         "command": "multicol.restoreSingleColumn",
