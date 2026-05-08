@@ -53,24 +53,3 @@ export function getViewportAnchorPosition(editor: vscode.TextEditor): vscode.Pos
   }
   return ranges[0]!.start;
 }
-
-/**
- * Bottommost document line that still intersects the vertical viewport (approx.).
- * `Range.end` is typically half-open; treating `(line,0)` as “before line” avoids counting a ghost row below the viewport.
- */
-export function getViewportBottomLineInclusive(editor: vscode.TextEditor): number {
-  const ranges = editor.visibleRanges;
-  if (!ranges.length) {
-    return getViewportAnchorPosition(editor).line;
-  }
-  let maxLine = getViewportAnchorPosition(editor).line;
-  for (const vr of ranges) {
-    let last = vr.end.line;
-    if (vr.end.character === 0) {
-      last -= 1;
-    }
-    last = Math.max(vr.start.line, last);
-    maxLine = Math.max(maxLine, last);
-  }
-  return maxLine;
-}

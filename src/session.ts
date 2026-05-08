@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { getLinesPerView, getViewportAnchorPosition, getViewportBottomLineInclusive } from './editorMetrics';
-import { mergeMulticolEditorGroupsBack, orderEditorsLeftToRight, splitIntoSameGroupColumns, yieldToHost } from './layout';
+import { getLinesPerView, getViewportAnchorPosition } from './editorMetrics';
+import { mergeMulticolEditorGroupsBack, orderEditorsLeftToRight, splitIntoSameGroupColumns } from './layout';
 
 const revealType = vscode.TextEditorRevealType.AtTop;
 
@@ -69,17 +69,6 @@ export class MulticolSession {
 
     const session = new MulticolSession(document, columnCount, editors, linesPerView);
     session.layoutEveryColumnFromAnchor(initial);
-    session.recalibrateLinesPerViewFromLeftPane();
-    session.recalibrateLinesPerViewFromLeftPane();
-    await yieldToHost();
-    await yieldToHost();
-    for (let i = 0; i < 6; i++) {
-      if (!session.calibrateOverlapFromViewport()) {
-        break;
-      }
-      await yieldToHost();
-      await yieldToHost();
-    }
     session.wire();
     return session;
   }
@@ -106,17 +95,6 @@ export class MulticolSession {
     session.linesPerView = linesPer;
     /** Layout before `wire()` so the first programmatic reveals do not run through sync handlers. */
     session.applyPersistedAnchorLine(persistedAnchorLine);
-    session.recalibrateLinesPerViewFromLeftPane();
-    session.recalibrateLinesPerViewFromLeftPane();
-    await yieldToHost();
-    await yieldToHost();
-    for (let i = 0; i < 6; i++) {
-      if (!session.calibrateOverlapFromViewport()) {
-        break;
-      }
-      await yieldToHost();
-      await yieldToHost();
-    }
     session.wire();
     return session;
   }
@@ -343,60 +321,17 @@ export class MulticolSession {
     }
   }
 
-  /** Recompute `linesPerView` from the left pane after layout/scroll changes; relayout if step changes. */
-  private recalibrateLinesPerViewFromLeftPane(): void {
-    const left = this.editors[0];
-    if (!left || !this.isEditorAlive(left)) {
-      return;
-    }
-    const next = Math.max(1, getLinesPerView(left));
-    if (next === this.linesPerView) {
-      return;
-    }
-    this.linesPerView = next;
-    const anchor =
-      this.lastAnchorLine >= 0 ? this.lastAnchorLine : getViewportAnchorPosition(left).line;
-    this.layoutEveryColumnFromAnchor(anchor);
-  }
-
   private getOverlapLines(): number {
     const v = vscode.workspace.getConfiguration('multicol', this.document.uri).get<number>('overlapLines', 0);
     const n = typeof v === 'number' && Number.isFinite(v) ? Math.trunc(v) : 0;
     return Math.max(0, n);
   }
 
-  /**
-   * When `linesPerView` is underestimated, column step is too small and the right pane starts too high,
-   * producing unwanted overlap at the gutter. Increase `linesPerView` until measured boundary overlap matches
-   * `overlapLines` (0 ⇒ right top is first line below left bottom).
-   */
-  private calibrateOverlapFromViewport(): boolean {
-    const left = this.editors[0];
-    const right = this.editors[1];
-    if (!left || !right || !this.isEditorAlive(left) || !this.isEditorAlive(right)) {
-      return false;
-    }
-    const overlapWant = this.getOverlapLines();
-    const bottomL = getViewportBottomLineInclusive(left);
-    const topR = getViewportAnchorPosition(right).line;
-    if (topR > bottomL) {
-      return false;
-    }
-    const overlapActual = bottomL - topR + 1;
-    const excess = overlapActual - overlapWant;
-    if (excess <= 0) {
-      return false;
-    }
-    this.linesPerView += excess;
-    this.layoutEveryColumnFromAnchor(this.lastAnchorLine);
-    return true;
-  }
-
   private getColumnStep(): number {
     return Math.max(1, this.linesPerView - this.getOverlapLines());
   }
 
-  /** Full relayout (startup, calibration, page commands, overlap setting): reveal every column. */
+  /** Full relayout (startup, page commands, overlap setting): reveal every column. */
   private layoutEveryColumnFromAnchor(anchorLine: number): void {
     const maxLine = Math.max(0, this.document.lineCount - 1);
     this.lastAnchorLine = Math.min(maxLine, Math.max(0, Math.trunc(anchorLine)));
