@@ -1,13 +1,14 @@
 # Multicol Reading (vscode-multicol)
 
-Split the current document into **two panes with Split Editor in Group** (one tab), with **synchronized scrolling** (`visibleRanges` on the pane you scroll → `revealRange` on the other).
+Split the current document into **two panes with Split Editor in Group** (one tab), with **synchronized scrolling** and **per-file workspace persistence** (reload restores two-column layout and anchor when possible).
 
 ## Features
 
-- **Toggle Two-Column Reading** (`multicol.toggleTwoColumn`): editor title bar icon or **Ctrl+Alt+N** / **Cmd+Alt+N**.
-- **Page Down / Page Up** when multicol is active (`multicol.active`): step by one column height.
-
-State is **not** saved across window reloads; toggle again after restart if needed.
+- **Toggle Two-Column Reading** (`multicol.toggleTwoColumn`): title bar, status bar **2-col**, **Ctrl+Alt+N** / **Cmd+Alt+N**.
+- **Turn On** / **Restore Single Column**: command palette.
+- **`multicol.overlapLines`**: optional overlap between columns (0–10 document lines).
+- **Page Down / Page Up** when multicol is active.
+- **Workspace persistence**: `multicol.documents.v1` stores per-URI anchor; reopen / reload tries to restore split for that file.
 
 ## About the author
 
@@ -15,33 +16,28 @@ State is **not** saved across window reloads; toggle again after restart if need
 
 ## Debug
 
-1. Run `npm install` in the repo root.
-2. Open this folder in VS Code.
-3. Press **F5** (Run Extension).
-4. Open a text file and run **Multicol Reading: Toggle Two-Column Reading**.
+1. `npm install` → open folder → **F5**.
+2. **Multicol Reading: Toggle Two-Column Reading** on a text file.
 
-Package: `npm run package`, then install the `.vsix` from VS Code (**Install from VSIX**).
+`npm run package` → install `.vsix` (**Install from VSIX**).
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `package.json` | Manifest |
-| `src/extension.ts` | Commands, session map |
+| `src/extension.ts` | Commands, status bar, persistence |
 | `src/session.ts` | Scroll sync |
-| `src/layout.ts` | `splitEditorInGroup` / `joinEditorInGroup` |
-| `src/editorMetrics.ts` | Line count from `visibleRanges` |
+| `src/layout.ts` | Split / join in group |
+| `src/editorMetrics.ts` | Lines per pane from `visibleRanges` |
 
-## Limits (VS Code API)
+## Limits
 
-- Scrolling uses **`revealRange`**, not pixel-perfect wheel matching.
-- Only **two panes in one group**; closing uses **`joinEditorInGroup`**.
+- Scroll sync uses **`revealRange`**, not pixel-perfect tracking.
+- Two panes per tab only; restore uses **`joinEditorInGroup`**.
 
-## Publish (maintainer)
+## Publish
 
-Push a tag `v*` to trigger [.github/workflows/release.yml](.github/workflows/release.yml) (builds and attaches the VSIX to a GitHub Release).
-
-Marketplace: `npm run package` then `npx vsce publish` with your PAT ([docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)).
+Push tag `v*` → [.github/workflows/release.yml](.github/workflows/release.yml) attaches VSIX to a GitHub Release. Marketplace: `npx vsce publish` with PAT.
 
 ## License
 
