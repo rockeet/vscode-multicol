@@ -340,14 +340,15 @@ export class MulticolSession {
     if (anchorLine !== this.lastAnchorLine) {
       this.lastAnchorLine = anchorLine;
       this.revealOtherColumnsForAnchor(anchorLine, source);
+      return;
     }
 
-    // Folding / word-wrap / font changes can alter how many lines fit in the left pane without moving the
-    // document anchor — the old early-return skipped right-column updates in that case.
+    // Anchor unchanged (typical: fold/unfold in the left pane). Running geometry stabilization on every
+    // scroll tick breaks sync — only do this when the contiguous anchor did not move.
     this.stabilizeViewportGeometryAfterVisibleChange();
   }
 
-  /** After any visible-range change, refresh pane height (`linesPerView`) from the left editor and fix gutter overlap. */
+  /** When the layout anchor is unchanged but pane height may have changed (fold, etc.). Not for routine scroll. */
   private stabilizeViewportGeometryAfterVisibleChange(): void {
     this.recalibrateLinesPerViewFromLeftPane();
     for (let i = 0; i < 6; i++) {
