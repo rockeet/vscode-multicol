@@ -2,7 +2,7 @@
   "name": "vscode-multicol",
   "displayName": "Multicol Reading",
   "description": "Two-column reading in one tab (Split Editor in Group): toggle, scroll sync, workspace persistence per file.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "publisher": "rockeet",
   "author": {
     "name": "雷鹏（Lei Peng）",
