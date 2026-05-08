@@ -49,11 +49,8 @@ Package: `npm install -g @vscode/vsce` then `vsce package`, install the VSIX fro
 2. **Visual Studio Marketplace**  
    - Create a [publisher](https://marketplace.visualstudio.com/manage) (ID must match `package.json` → `publisher`, here `rockeet`).  
    - Create a Personal Access Token: [Azure DevOps](https://dev.azure.com) → User settings → Personal access tokens → **Custom defined** → scope **Marketplace (Manage)**.  
-   - In PowerShell:  
-     `$env:VSCE_PAT = 'your_token_here'`  
-     `npm run package`  
-     `npx vsce publish`  
-   Or: `npx vsce publish -p $env:VSCE_PAT`
+   - **CI (recommended):** In the GitHub repo → **Settings → Secrets and variables → Actions**, add secret **`VSCE_PAT`**. Pushing a tag `v*` runs [release.yml](.github/workflows/release.yml): it uploads the VSIX to the GitHub Release and publishes that same VSIX to the Marketplace when `VSCE_PAT` is set.  
+   - **Local:** In PowerShell: `$env:VSCE_PAT = 'your_token_here'` → `npm run package` → `npx vsce publish` (or `npx vsce publish -p $env:VSCE_PAT`).
 
 ## License
 

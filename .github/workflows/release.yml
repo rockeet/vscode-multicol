@@ -26,6 +26,21 @@ jobs:
       - name: Package VSIX
         run: npx @vscode/vsce package --no-dependencies
 
+      # Add repo secret VSCE_PAT (Azure DevOps PAT, scope: Marketplace → Manage).
+      # If unset, release still uploads the VSIX to GitHub only.
+      - name: Publish to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -e
+          if [ -z "${VSCE_PAT:-}" ]; then
+            echo "VSCE_PAT not set — skipping Marketplace publish."
+            exit 0
+          fi
+          VSIX=$(ls -1 ./*.vsix | head -n1)
+          echo "Publishing $VSIX"
+          npx @vscode/vsce publish --no-dependencies -i "$VSIX"
+
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
