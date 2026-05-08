@@ -2,7 +2,7 @@
   "name": "vscode-multicol",
   "displayName": "Multicol Reading",
   "description": "Two-column reading for one file: toggle split on/off like a checkbox; editor title bar, status bar, and Ctrl+Alt+N.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "publisher": "rockeet",
   "author": {
     "name": "雷鹏（Lei Peng）",
