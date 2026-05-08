@@ -337,12 +337,24 @@ export class MulticolSession {
     const topLine = getViewportAnchorPosition(source).line;
     const anchorLine = Math.min(maxLine, Math.max(0, topLine - idx * step));
 
-    if (anchorLine === this.lastAnchorLine) {
-      return;
+    if (anchorLine !== this.lastAnchorLine) {
+      this.lastAnchorLine = anchorLine;
+      this.revealOtherColumnsForAnchor(anchorLine, source);
     }
 
-    this.lastAnchorLine = anchorLine;
-    this.revealOtherColumnsForAnchor(anchorLine, source);
+    // Folding / word-wrap / font changes can alter how many lines fit in the left pane without moving the
+    // document anchor — the old early-return skipped right-column updates in that case.
+    this.stabilizeViewportGeometryAfterVisibleChange();
+  }
+
+  /** After any visible-range change, refresh pane height (`linesPerView`) from the left editor and fix gutter overlap. */
+  private stabilizeViewportGeometryAfterVisibleChange(): void {
+    this.recalibrateLinesPerViewFromLeftPane();
+    for (let i = 0; i < 6; i++) {
+      if (!this.calibrateOverlapFromViewport()) {
+        break;
+      }
+    }
   }
 
   /** Recompute `linesPerView` from the left pane after layout/scroll changes; relayout if step changes. */
