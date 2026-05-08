@@ -1,8 +1,8 @@
 {
   "name": "vscode-multicol",
   "displayName": "Multicol Reading",
-  "description": "Two-column reading for one file: toggle split on/off like a checkbox; editor title bar, status bar, and Ctrl+Alt+N.",
-  "version": "0.2.0",
+  "description": "Two-column reading in one tab (Split Editor in Group): toggle via title bar or Ctrl+Alt+N; scroll sync across panes.",
+  "version": "0.3.0",
   "publisher": "rockeet",
   "author": {
     "name": "雷鹏（Lei Peng）",
@@ -35,21 +35,13 @@
     "url": "https://github.com/rockeet/vscode-multicol/issues"
   },
   "homepage": "https://github.com/rockeet/vscode-multicol#readme",
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onCommand:multicol.toggleTwoColumn",
+    "onCommand:multicol.pageDown",
+    "onCommand:multicol.pageUp"
+  ],
   "main": "./out/extension.js",
   "contributes": {
-    "configuration": {
-      "title": "Multicol Reading",
-      "properties": {
-        "multicol.overlapLines": {
-          "type": "integer",
-          "default": 0,
-          "minimum": 0,
-          "maximum": 10,
-          "markdownDescription": "Extra **document lines** of vertical overlap between adjacent columns (not scrollbars). Column *j* starts at anchor + *j* × (`lines per column` − overlap). `0` means columns meet with no overlap."
-        }
-      }
-    },
     "commands": [
       {
         "command": "multicol.toggleTwoColumn",
@@ -59,21 +51,6 @@
           "light": "media/multicol.svg",
           "dark": "media/multicol.svg"
         }
-      },
-      {
-        "command": "multicol.activateTwoColumn",
-        "title": "Turn On Two-Column Reading",
-        "category": "Multicol Reading",
-        "icon": {
-          "light": "media/multicol.svg",
-          "dark": "media/multicol.svg"
-        }
-      },
-      {
-        "command": "multicol.restoreSingleColumn",
-        "title": "Restore Single Column",
-        "category": "Multicol Reading",
-        "icon": "$(close)"
       },
       {
         "command": "multicol.pageDown",
@@ -90,7 +67,7 @@
       "editor/title": [
         {
           "command": "multicol.toggleTwoColumn",
-          "group": "navigation@9"
+          "group": "navigation"
         }
       ]
     },

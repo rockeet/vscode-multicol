@@ -1,14 +1,13 @@
 # Multicol Reading (vscode-multicol)
 
-Split the current document into **two panes with Split Editor in Group** (one tab, primary/secondary), with **continuous newspaper-style columns** and **synchronized scrolling** (document-line based `visibleRanges` + `revealRange`).
+Split the current document into **two panes with Split Editor in Group** (one tab), with **synchronized scrolling** (`visibleRanges` on the pane you scroll → `revealRange` on the other).
 
 ## Features
 
-- **`Multicol Reading: Toggle Two-Column Reading`** (`multicol.toggleTwoColumn`): switch between single pane and two panes (editor title bar button, status bar, **Ctrl+Alt+N** / **Cmd+Alt+N**).
-- **`Turn On Two-Column Reading`** / **`Restore Single Column`**: explicit commands in the Command Palette.
-- **`multicol.overlapLines`**: optional vertical overlap between columns (0–10 document lines).
-- **Page Down / Page Up** when multicol is active: step by one column height.
-- **Per-file editor state (persisted in the workspace)**: each document URI can independently be “two-column on” or off; missing entry means single column. Reload restores split **per URI** that was left on, including scroll **anchor** (best-effort).
+- **Toggle Two-Column Reading** (`multicol.toggleTwoColumn`): editor title bar icon or **Ctrl+Alt+N** / **Cmd+Alt+N**.
+- **Page Down / Page Up** when multicol is active (`multicol.active`): step by one column height.
+
+State is **not** saved across window reloads; toggle again after restart if needed.
 
 ## About the author
 
@@ -18,39 +17,31 @@ Split the current document into **two panes with Split Editor in Group** (one ta
 
 1. Run `npm install` in the repo root.
 2. Open this folder in VS Code.
-3. Press **F5** (Run Extension) to launch an Extension Development Host.
+3. Press **F5** (Run Extension).
 4. Open a text file and run **Multicol Reading: Toggle Two-Column Reading**.
 
-Package: `npm install -g @vscode/vsce` then `vsce package`, install the VSIX from VS Code.
+Package: `npm run package`, then install the `.vsix` from VS Code (**Install from VSIX**).
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `package.json` | Manifest: commands, keybindings, configuration |
-| `src/extension.ts` | Activation: commands, status bar, per-document persistence (`multicol.documents.v1` map) |
-| `src/session.ts` | `MulticolSession`: scroll sync via `revealRange(AtTop)` |
-| `src/layout.ts` | `workbench.action.splitEditorInGroup` / `joinEditorInGroup` |
-| `src/editorMetrics.ts` | Lines-per-column heuristic from `visibleRanges` |
+| `package.json` | Manifest |
+| `src/extension.ts` | Commands, session map |
+| `src/session.ts` | Scroll sync |
+| `src/layout.ts` | `splitEditorInGroup` / `joinEditorInGroup` |
+| `src/editorMetrics.ts` | Line count from `visibleRanges` |
 
 ## Limits (VS Code API)
 
-- No public pixel scroll API on `TextEditor`; scrolling uses **`revealRange`** — not pixel-identical to native wheel/trackpad in all themes.
-- Layout uses **Split Editor in Group** only (two panes per tab); there is no supported third column in the same group.
-- **Restore single column** runs **`joinEditorInGroup`** (not `joinTwoGroups`).
-- If **split** fails mid-flight, the extension **best-effort rolls back** with **`joinEditorInGroup`** until visible editor count for that document is back to what it was before the attempt.
-- Some editor types cannot split in group (non-text editors); split may fail with a clear error.
+- Scrolling uses **`revealRange`**, not pixel-perfect wheel matching.
+- Only **two panes in one group**; closing uses **`joinEditorInGroup`**.
 
 ## Publish (maintainer)
 
-1. **GitHub Release + VSIX**  
-   Push a version tag `v*` (e.g. `v0.1.1`). The [Release workflow](.github/workflows/release.yml) compiles, runs `vsce package`, and attaches the `.vsix` to a GitHub Release.
+Push a tag `v*` to trigger [.github/workflows/release.yml](.github/workflows/release.yml) (builds and attaches the VSIX to a GitHub Release).
 
-2. **Visual Studio Marketplace**  
-   - Create a [publisher](https://marketplace.visualstudio.com/manage) (ID must match `package.json` → `publisher`, here `rockeet`).  
-   - Create a Personal Access Token: [Azure DevOps](https://dev.azure.com) → User settings → Personal access tokens → **Custom defined** → scope **Marketplace (Manage)**.  
-   - **CI (recommended):** In the GitHub repo → **Settings → Secrets and variables → Actions**, add secret **`VSCE_PAT`**. Pushing a tag `v*` runs [release.yml](.github/workflows/release.yml): it uploads the VSIX to the GitHub Release and publishes that same VSIX to the Marketplace when `VSCE_PAT` is set.  
-   - **Local:** In PowerShell: `$env:VSCE_PAT = 'your_token_here'` → `npm run package` → `npx vsce publish` (or `npx vsce publish -p $env:VSCE_PAT`).
+Marketplace: `npm run package` then `npx vsce publish` with your PAT ([docs](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)).
 
 ## License
 
