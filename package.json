@@ -1,0 +1,137 @@
+{
+  "name": "vscode-multicol",
+  "displayName": "Multicol Reading",
+  "description": "Two-column reading for one file: toggle split on/off like a checkbox; editor title bar, status bar, and Ctrl+Alt+N.",
+  "version": "0.1.1",
+  "publisher": "rockeet",
+  "author": {
+    "name": "雷鹏（Lei Peng）",
+    "email": "rockeet@gmail.com"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "reading",
+    "columns",
+    "split",
+    "multicol",
+    "two-column",
+    "newspaper",
+    "split editor"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rockeet/vscode-multicol.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rockeet/vscode-multicol/issues"
+  },
+  "homepage": "https://github.com/rockeet/vscode-multicol#readme",
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Multicol Reading",
+      "properties": {
+        "multicol.overlapLines": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 10,
+          "markdownDescription": "Extra **document lines** of vertical overlap between adjacent columns (not scrollbars). Column *j* starts at anchor + *j* × (`lines per column` − overlap). `0` means columns meet with no overlap."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "multicol.toggleTwoColumn",
+        "title": "Toggle Two-Column Reading",
+        "category": "Multicol Reading",
+        "icon": {
+          "light": "media/multicol.svg",
+          "dark": "media/multicol.svg"
+        },
+        "toggled": {
+          "condition": "multicol.active",
+          "title": "Turn Off Two-Column Reading",
+          "icon": {
+            "light": "media/multicol-active.svg",
+            "dark": "media/multicol-active.svg"
+          }
+        }
+      },
+      {
+        "command": "multicol.activateTwoColumn",
+        "title": "Turn On Two-Column Reading",
+        "category": "Multicol Reading",
+        "icon": {
+          "light": "media/multicol.svg",
+          "dark": "media/multicol.svg"
+        }
+      },
+      {
+        "command": "multicol.restoreSingleColumn",
+        "title": "Restore Single Column",
+        "category": "Multicol Reading",
+        "icon": "$(close)"
+      },
+      {
+        "command": "multicol.pageDown",
+        "title": "Page Down (next column step)",
+        "category": "Multicol Reading"
+      },
+      {
+        "command": "multicol.pageUp",
+        "title": "Page Up (previous column step)",
+        "category": "Multicol Reading"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "multicol.toggleTwoColumn",
+          "group": "navigation@100000"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "multicol.toggleTwoColumn",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "multicol.pageDown",
+        "key": "pagedown",
+        "when": "editorTextFocus && multicol.active"
+      },
+      {
+        "command": "multicol.pageUp",
+        "key": "pageup",
+        "when": "editorTextFocus && multicol.active"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npm run compile && vsce package --no-dependencies"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.2",
+    "typescript": "^5.3.3"
+  }
+}
