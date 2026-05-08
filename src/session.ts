@@ -31,6 +31,9 @@ export class MulticolSession {
   private ignoreNextVisibleRangeFor = new Set<vscode.TextEditor>();
   private ignoreReleaseTimers = new Map<vscode.TextEditor, ReturnType<typeof setTimeout>>();
 
+  /** Debounced fold/geometry fix — never run inline on `visibleRanges` or it fights active scrolling. */
+  private viewportGeometryTimer: ReturnType<typeof setTimeout> | undefined;
+
   private constructor(document: vscode.TextDocument, columnCount: number, editors: vscode.TextEditor[], linesPerView: number) {
     this.document = document;
     this.columnCount = columnCount;
@@ -122,6 +125,7 @@ export class MulticolSession {
   }
 
   dispose(): void {
+    this.cancelViewportGeometryStabilize();
     this.pendingFlushSource = undefined;
     this.flushChainScheduled = false;
     this.ignoreNextVisibleRangeFor.clear();
@@ -338,24 +342,36 @@ export class MulticolSession {
     const anchorLine = Math.min(maxLine, Math.max(0, topLine - idx * step));
 
     if (anchorLine !== this.lastAnchorLine) {
+      this.cancelViewportGeometryStabilize();
       this.lastAnchorLine = anchorLine;
       this.revealOtherColumnsForAnchor(anchorLine, source);
       return;
     }
 
-    // Anchor unchanged (typical: fold/unfold in the left pane). Running geometry stabilization on every
-    // scroll tick breaks sync — only do this when the contiguous anchor did not move.
-    this.stabilizeViewportGeometryAfterVisibleChange();
+    // Same anchor can repeat during sticky scroll / reveal churn; immediate full relayout causes “random” jumps.
+    // Debounce: only after edits settle (typical fold) do we refresh lines-per-pane once.
+    this.scheduleViewportGeometryStabilize();
   }
 
-  /** When the layout anchor is unchanged but pane height may have changed (fold, etc.). Not for routine scroll. */
-  private stabilizeViewportGeometryAfterVisibleChange(): void {
-    this.recalibrateLinesPerViewFromLeftPane();
-    for (let i = 0; i < 6; i++) {
-      if (!this.calibrateOverlapFromViewport()) {
-        break;
-      }
+  private cancelViewportGeometryStabilize(): void {
+    if (this.viewportGeometryTimer !== undefined) {
+      clearTimeout(this.viewportGeometryTimer);
+      this.viewportGeometryTimer = undefined;
     }
+  }
+
+  private scheduleViewportGeometryStabilize(): void {
+    if (this.viewportGeometryTimer !== undefined) {
+      clearTimeout(this.viewportGeometryTimer);
+    }
+    this.viewportGeometryTimer = setTimeout(() => {
+      this.viewportGeometryTimer = undefined;
+      if (this.applying) {
+        return;
+      }
+      this.recalibrateLinesPerViewFromLeftPane();
+      this.calibrateOverlapFromViewport();
+    }, 320);
   }
 
   /** Recompute `linesPerView` from the left pane after layout/scroll changes; relayout if step changes. */
